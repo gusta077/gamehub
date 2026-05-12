@@ -9,6 +9,7 @@ function App() {
   const [games, setGames] = useState([])
   const [selectedGame, setSelectedGame] = useState(null)
   const [gameReviews, setGameReviews] = useState([])
+  const [userReviews, setUserReviews] = useState([]) // Novo estado para o perfil
   const [rating, setRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
 
@@ -65,6 +66,18 @@ function App() {
     setGameReviews(data || [])
   }
 
+  // Função para abrir e carregar os dados do Perfil
+  async function openProfile() {
+    setPage('profile')
+    const { data } = await supabase
+      .from('reviews')
+      .select('*, games(title)') // Busca a review e o título do jogo relacionado
+      .eq('user_id', user.id)
+      .order('id', { ascending: false })
+    
+    if (data) setUserReviews(data)
+  }
+
   async function handleLogin(e) {
     e.preventDefault()
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -113,6 +126,12 @@ function App() {
     }
   }
 
+  // Estatísticas para o perfil
+  const totalReviews = userReviews.length
+  const averageRating = totalReviews > 0 
+    ? (userReviews.reduce((acc, rev) => acc + rev.rating, 0) / totalReviews).toFixed(1) 
+    : "0.0"
+
   return (
     <div id="app">
       {!isLogged ? (
@@ -144,8 +163,8 @@ function App() {
             <nav className="nav-links">
               <span onClick={() => setPage('catalog')}>Catálogo</span>
               <span>Reviews da Comunidade</span>
-              <span>Perfil</span>
-              <button onClick={() => setIsLogged(false)} className="btn-exit">Sair</button>
+              <span onClick={openProfile} className="nav-item">Perfil</span>
+              <button onClick={() => { setIsLogged(false); setPage('login'); }} className="btn-exit">Sair</button>
             </nav>
           </header>
 
@@ -168,7 +187,6 @@ function App() {
             {page === 'details' && selectedGame && (
               <div className="details-wrapper">
                 <button className="btn-back" onClick={() => setPage('catalog')}>← Voltar ao Catálogo</button>
-                
                 <div className="details-main-card">
                   <div className="details-image-section">
                     <img src={selectedGame.imageurl} alt={selectedGame.title} />
@@ -194,24 +212,57 @@ function App() {
                     <button onClick={sendReview} className="btn-submit-review">ENVIAR AVALIAÇÃO</button>
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="community-section">
-                  <h2 className="community-title">Avaliações da Comunidade</h2>
+            {page === 'profile' && (
+              <div className="profile-container">
+                <div className="profile-header-card">
+                  <div className="avatar-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <div className="user-info">
+                    <h1>{user.user_metadata?.display_name || "Usuário"}</h1>
+                    <p>{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <p>Total de Avaliações</p>
+                    <h2>{totalReviews}</h2>
+                  </div>
+                  <div className="stat-card">
+                    <p>Média de Notas</p>
+                    <h2>{averageRating}</h2>
+                  </div>
+                </div>
+
+                <div className="user-reviews-section">
+                  <h2>Minhas Avaliações</h2>
+                  <hr className="title-divider" />
                   <div className="reviews-feed">
-                    {gameReviews.length > 0 ? (
-                      gameReviews.map(rev => (
+                    {userReviews.length > 0 ? (
+                      userReviews.map(rev => (
                         <div key={rev.id} className="review-card">
-                          <div className="review-card-stars">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={rev.rating > i ? "star-small active" : "star-small"}>★</span>
-                            ))}
+                          <div className="review-header">
+                            <strong>{rev.games?.title}</strong>
+                            <div className="review-card-stars">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={rev.rating > i ? "star-small active" : "star-small"}>★</span>
+                              ))}
+                            </div>
                           </div>
                           <p className="review-card-comment">"{rev.comment}"</p>
-                          <p className="review-card-meta">Avaliado por: {rev.user_email}</p>
                         </div>
                       ))
                     ) : (
-                      <p className="empty-reviews">Nenhuma avaliação ainda. Seja o primeiro!</p>
+                      <div className="empty-state-card">
+                        <p>Você ainda não fez nenhuma avaliação.</p>
+                      </div>
                     )}
                   </div>
                 </div>

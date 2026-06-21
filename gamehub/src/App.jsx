@@ -13,6 +13,11 @@ function App() {
   const [gameReviews, setGameReviews] = useState([])
   const [userReviews, setUserReviews] = useState([])
   const [communityReviews, setCommunityReviews] = useState([])
+  
+  // States dos Filtros da Comunidade
+  const [selectedFilter, setSelectedFilter] = useState("todos")
+  const [sortOrder, setSortOrder] = useState("recente")
+  const [ratingFilter, setRatingFilter] = useState("todas")
 
   const [rating, setRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
@@ -520,6 +525,34 @@ function App() {
     }
   }
 
+  // NOVA FUNÇÃO: Apagar jogo
+  async function deleteGame(gameId) {
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja apagar este jogo? As avaliações vinculadas a ele também poderão ser perdidas."
+    )
+    
+    if (!confirmDelete) return
+
+    const { error } = await supabase
+      .from('games')
+      .delete()
+      .eq('id', gameId)
+      .eq('developer_id', user.id) // Regra de segurança extra via código
+
+    if (error) {
+      alert(error.message)
+    } else {
+      alert("Jogo apagado com sucesso!")
+      
+      if (editingGame?.id === gameId) {
+        cancelEditGame() // Fecha a tela de edição se o jogo apagado estiver sendo editado
+      }
+      
+      await fetchGames()
+      await fetchDeveloperGames()
+    }
+  }
+
   const totalReviews = userReviews.length
 
   const averageRating = totalReviews > 0
@@ -763,50 +796,125 @@ function App() {
                   Veja as avaliações feitas por todos os jogadores.
                 </p>
 
+                {/* PAINEL DE FILTROS */}
+                <div style={{
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: '15px', 
+                  marginBottom: '24px',
+                  backgroundColor: 'var(--bg-card-soft)',
+                  padding: '16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  
+                  {/* Filtro por Jogo */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Jogo</label>
+                    <select 
+                      className="form-select" 
+                      value={selectedFilter}
+                      onChange={(e) => setSelectedFilter(e.target.value)}
+                      style={{ margin: 0, padding: '8px 12px' }}
+                    >
+                      <option value="todos">Todos os jogos</option>
+                      {[...new Set(communityReviews.map(r => r.games?.title).filter(Boolean))].map(gameTitle => (
+                        <option key={gameTitle} value={gameTitle}>{gameTitle}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Filtro por Estrelas */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nota</label>
+                    <select 
+                      className="form-select" 
+                      value={ratingFilter}
+                      onChange={(e) => setRatingFilter(e.target.value)}
+                      style={{ margin: 0, padding: '8px 12px' }}
+                    >
+                      <option value="todas">Todas as notas</option>
+                      <option value="5">5 Estrelas</option>
+                      <option value="4">4 Estrelas</option>
+                      <option value="3">3 Estrelas</option>
+                      <option value="2">2 Estrelas</option>
+                      <option value="1">1 Estrela</option>
+                    </select>
+                  </div>
+
+                  {/* Ordenação por Data */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Ordem</label>
+                    <select 
+                      className="form-select" 
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      style={{ margin: 0, padding: '8px 12px' }}
+                    >
+                      <option value="recente">Mais Recentes</option>
+                      <option value="antigo">Mais Antigos</option>
+                    </select>
+                  </div>
+
+                </div>
+
                 <hr className="title-divider" />
 
                 <div className="reviews-feed">
                   {communityReviews.length > 0 ? (
-                    communityReviews.map(rev => (
-                      <div key={rev.id} className="review-card">
-                        <div className="review-header">
-                          <div className="community-game-info">
-                            {rev.games?.imageurl && (
-                              <img
-                                src={rev.games.imageurl}
-                                alt={rev.games?.title || "Jogo"}
-                                className="community-game-img"
-                              />
-                            )}
+                    communityReviews
+                      // 1. Filtra pelo nome do jogo
+                      .filter(rev => selectedFilter === "todos" || rev.games?.title === selectedFilter)
+                      // 2. Filtra pela quantidade de estrelas (rating)
+                      .filter(rev => ratingFilter === "todas" || rev.rating.toString() === ratingFilter)
+                      // 3. Ordena pelo ID (Mais recente = Maior ID)
+                      .sort((a, b) => {
+                        if (sortOrder === "recente") {
+                          return b.id - a.id; 
+                        } else {
+                          return a.id - b.id; 
+                        }
+                      })
+                      .map(rev => (
+                        <div key={rev.id} className="review-card">
+                          <div className="review-header">
+                            <div className="community-game-info">
+                              {rev.games?.imageurl && (
+                                <img
+                                  src={rev.games.imageurl}
+                                  alt={rev.games?.title || "Jogo"}
+                                  className="community-game-img"
+                                />
+                              )}
 
-                            <div>
-                              <strong>{rev.games?.title || "Jogo desconhecido"}</strong>
-                              <p className="review-author">
-                                Avaliado por: {rev.user_email}
-                              </p>
+                              <div>
+                                <strong>{rev.games?.title || "Jogo desconhecido"}</strong>
+                                <p className="review-author">
+                                  Avaliado por: {rev.user_email}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="review-card-stars">
+                              {[...Array(5)].map((_, i) => (
+                                <span
+                                  key={i}
+                                  className={rev.rating > i ? "star-small active" : "star-small"}
+                                >
+                                  ★
+                                </span>
+                              ))}
                             </div>
                           </div>
 
-                          <div className="review-card-stars">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className={rev.rating > i ? "star-small active" : "star-small"}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
+                          <p className="review-card-comment">
+                            {rev.comment ? `"${rev.comment}"` : "Sem comentário."}
+                          </p>
                         </div>
-
-                        <p className="review-card-comment">
-                          {rev.comment ? `"${rev.comment}"` : "Sem comentário."}
-                        </p>
-                      </div>
-                    ))
+                      ))
                   ) : (
                     <div className="empty-state-card">
-                      <p>Ainda não existem avaliações da comunidade.</p>
+                      <p>Ainda não existem avaliações da comunidade com esses filtros.</p>
                     </div>
                   )}
                 </div>
@@ -888,12 +996,21 @@ function App() {
                             <p>{game.description || "Sem descrição."}</p>
                           </div>
 
-                          <button
-                            className="btn-edit-game"
-                            onClick={() => startEditGame(game)}
-                          >
-                            Editar
-                          </button>
+                          {/* NOVA ÁREA DE BOTÕES */}
+                          <div className="developer-game-actions">
+                            <button
+                              className="btn-edit-game"
+                              onClick={() => startEditGame(game)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="btn-delete-game"
+                              onClick={() => deleteGame(game.id)}
+                            >
+                              Apagar
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

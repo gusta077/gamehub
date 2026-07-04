@@ -285,7 +285,8 @@ a:hover {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* CORREÇÃO: Usando auto-fill em vez de auto-fit para não esticar os cards isolados */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 30px;
   width: 100%;
 }
@@ -358,10 +359,30 @@ a:hover {
 
 .details-image-section img {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 9; 
   border-radius: var(--radius-md);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
-  object-fit: cover;
+  object-fit: cover; 
+}
+
+.game-contact-box {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-top: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.game-contact-box strong {
+  display: block;
+  color: var(--accent-blue);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
 }
 
 .details-info-section {
@@ -577,7 +598,7 @@ a:hover {
 }
 
 /* =========================
-   ÁREA DO DESENVOLVEDOR
+   ÁREA DO DESENVOLVEDOR & PREVIEW
 ========================= */
 
 .developer-header {
@@ -603,6 +624,13 @@ a:hover {
   padding: 32px;
   box-shadow: var(--shadow-soft);
   margin-bottom: 30px;
+}
+
+/* Split Form & Preview */
+.developer-form-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
 }
 
 .developer-card h2 {
@@ -645,6 +673,48 @@ a:hover {
   line-height: 1.5;
 }
 
+/* Dynamic Inputs Styling */
+.dynamic-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dynamic-input-row input {
+  margin-bottom: 0 !important;
+}
+
+.btn-remove-input {
+  background-color: var(--accent-red);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0 16px;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-remove-input:hover {
+  background-color: var(--accent-red-hover);
+}
+
+.btn-add-input {
+  background-color: transparent;
+  color: var(--accent-blue);
+  border: 1px dashed var(--accent-blue);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.btn-add-input:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
 .btn-add-game {
   margin-top: 12px;
   background-color: var(--accent-green);
@@ -660,35 +730,45 @@ a:hover {
   background-color: var(--accent-green-hover);
 }
 
-.game-preview {
-  margin-top: 10px;
+/* Preview Box Styling */
+.live-preview-box {
   background-color: var(--bg-card-soft);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
 }
 
-.game-preview p {
+.live-preview-box h3.preview-title {
   color: var(--text-secondary);
   margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 800;
 }
 
-.game-preview img {
-  width: 100%;
-  max-width: 460px;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+.preview-mode {
+  flex-direction: column !important;
+  padding: 24px !important;
+  gap: 24px !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
 }
 
+.preview-mode .details-image-section {
+  width: 100% !important;
+}
+
+/* Developer Game List */
 .developer-list-card {
   margin-top: 35px;
 }
 
 .developer-games-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  /* CORREÇÃO: auto-fill garante que o item não vai esticar se for o único */
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 16px;
 }
 
@@ -721,7 +801,6 @@ a:hover {
   line-height: 1.5;
 }
 
-/* Novo layout para os botões ficarem alinhados */
 .developer-game-actions {
   display: flex;
   flex-direction: column;
@@ -743,7 +822,6 @@ a:hover {
   background-color: var(--accent-blue-hover);
 }
 
-/* Novo botão de apagar */
 .btn-delete-game {
   background-color: var(--accent-red);
   color: white;
@@ -925,6 +1003,12 @@ a:hover {
    RESPONSIVIDADE
 ========================= */
 
+@media (max-width: 1100px) {
+  .developer-form-split {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .navbar {
     flex-direction: column;
@@ -1039,4 +1123,4 @@ a:hover {
   .media-grid {
     grid-template-columns: 1fr;
   }
-}   
+}

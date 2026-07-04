@@ -14,8 +14,12 @@ function App() {
   const [userReviews, setUserReviews] = useState([])
   const [communityReviews, setCommunityReviews] = useState([])
   
+  // States do Filtro do Catálogo
+  const [catalogDeveloperFilter, setCatalogDeveloperFilter] = useState("todas")
+
   // States dos Filtros da Comunidade
   const [selectedFilter, setSelectedFilter] = useState("todos")
+  const [reviewDeveloperFilter, setReviewDeveloperFilter] = useState("todas")
   const [sortOrder, setSortOrder] = useState("recente")
   const [ratingFilter, setRatingFilter] = useState("todas")
 
@@ -24,16 +28,22 @@ function App() {
 
   const [developerGames, setDeveloperGames] = useState([])
 
+  // States Cadastro
   const [newGameTitle, setNewGameTitle] = useState('')
   const [newGameImageUrl, setNewGameImageUrl] = useState('')
+  const [newGameCompanyName, setNewGameCompanyName] = useState('') 
+  const [newGameContact, setNewGameContact] = useState('')
   const [newGameDescription, setNewGameDescription] = useState('')
-  const [newGameMediaText, setNewGameMediaText] = useState('')
+  const [newMediaUrls, setNewMediaUrls] = useState([''])
 
+  // States Edição
   const [editingGame, setEditingGame] = useState(null)
   const [editGameTitle, setEditGameTitle] = useState('')
   const [editGameImageUrl, setEditGameImageUrl] = useState('')
+  const [editGameCompanyName, setEditGameCompanyName] = useState('') 
+  const [editGameContact, setEditGameContact] = useState('')
   const [editGameDescription, setEditGameDescription] = useState('')
-  const [editGameMediaText, setEditGameMediaText] = useState('')
+  const [editMediaUrls, setEditMediaUrls] = useState([''])
 
   const isDeveloper = user?.user_metadata?.role === 'developer'
 
@@ -79,83 +89,73 @@ function App() {
     const initialGames = [
       {
         title: "Counter-Strike 2",
+        company_name: "Valve",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg",
         description: "Um jogo competitivo de tiro em primeira pessoa focado em estratégia, precisão e trabalho em equipe.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg"]
       },
       {
         title: "Elden Ring",
+        company_name: "FromSoftware",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg",
         description: "RPG de ação em mundo aberto com exploração, chefes desafiadores e uma ambientação de fantasia sombria.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg"]
       },
       {
         title: "Forza Horizon 5",
+        company_name: "Playground Games",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg",
         description: "Jogo de corrida em mundo aberto com carros variados, eventos e cenários inspirados no México.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg"]
       },
       {
         title: "God of War",
+        company_name: "Santa Monica Studio",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg",
         description: "Aventura de ação focada na jornada de Kratos e Atreus em um mundo inspirado na mitologia nórdica.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg"]
       },
       {
         title: "Grand Theft Auto V",
+        company_name: "Rockstar Games",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg",
         description: "Jogo de ação em mundo aberto com missões, exploração urbana e modo online.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg"]
       },
       {
         title: "Hollow Knight",
+        company_name: "Team Cherry",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg",
         description: "Metroidvania em 2D com exploração, combate desafiador e uma atmosfera misteriosa.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg"]
       },
       {
         title: "Red Dead Redemption 2",
+        company_name: "Rockstar Games",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg",
         description: "Aventura em mundo aberto no velho oeste, com narrativa cinematográfica e exploração detalhada.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg"]
       },
       {
         title: "Resident Evil 4",
+        company_name: "Capcom",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/2050650/header.jpg",
         description: "Survival horror de ação com combate intenso, atmosfera sombria e foco em sobrevivência.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/2050650/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/2050650/header.jpg"]
       },
       {
         title: "The Last of Us Part I",
+        company_name: "Naughty Dog",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/1888930/header.jpg",
         description: "Jogo narrativo de ação e sobrevivência em um mundo pós-apocalíptico.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/1888930/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/1888930/header.jpg"]
       },
       {
         title: "The Witcher 3: Wild Hunt",
+        company_name: "CD Projekt Red",
         imageurl: "https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg",
         description: "RPG de mundo aberto com escolhas, narrativa profunda e caçadas a monstros.",
-        media_urls: [
-          "https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg"
-        ]
+        media_urls: ["https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg"]
       }
     ]
 
@@ -206,7 +206,7 @@ function App() {
 
     const { data, error } = await supabase
       .from('reviews')
-      .select('*, games(title, imageurl)')
+      .select('*, games(title, imageurl, company_name)')
       .order('id', { ascending: false })
 
     if (error) {
@@ -330,23 +330,48 @@ function App() {
     }
   }
 
-  function parseMediaUrls(text) {
-    return text
-      .split('\n')
-      .map(url => url.trim())
-      .filter(url => url.length > 0)
+  function handleNewMediaChange(index, value) {
+    const updatedUrls = [...newMediaUrls]
+    updatedUrls[index] = value
+    setNewMediaUrls(updatedUrls)
   }
 
-  function getAllMediaUrls(mainImage, mediaText) {
-    const extraMedia = parseMediaUrls(mediaText)
-    const allMedia = [mainImage, ...extraMedia].filter(Boolean)
+  function handleAddNewMediaInput() {
+    if (newMediaUrls.length < 5) {
+      setNewMediaUrls([...newMediaUrls, ''])
+    }
+  }
 
+  function handleRemoveNewMediaInput(index) {
+    const updatedUrls = newMediaUrls.filter((_, i) => i !== index)
+    setNewMediaUrls(updatedUrls.length > 0 ? updatedUrls : [''])
+  }
+
+  function handleEditMediaChange(index, value) {
+    const updatedUrls = [...editMediaUrls]
+    updatedUrls[index] = value
+    setEditMediaUrls(updatedUrls)
+  }
+
+  function handleAddEditMediaInput() {
+    if (editMediaUrls.length < 5) {
+      setEditMediaUrls([...editMediaUrls, ''])
+    }
+  }
+
+  function handleRemoveEditMediaInput(index) {
+    const updatedUrls = editMediaUrls.filter((_, i) => i !== index)
+    setEditMediaUrls(updatedUrls.length > 0 ? updatedUrls : [''])
+  }
+
+  function getAllMediaUrls(mainImage, mediaArray) {
+    const extraMedia = mediaArray.map(url => url.trim()).filter(url => url.length > 0)
+    const allMedia = [mainImage, ...extraMedia].filter(Boolean)
     return [...new Set(allMedia)]
   }
 
   function isVideoUrl(url) {
     const cleanUrl = url.toLowerCase().split('?')[0]
-
     return (
       cleanUrl.endsWith('.mp4') ||
       cleanUrl.endsWith('.webm') ||
@@ -410,8 +435,8 @@ function App() {
       return
     }
 
-    if (!newGameTitle.trim()) {
-      alert("Digite o nome do jogo.")
+    if (!newGameTitle.trim() || !newGameCompanyName.trim()) {
+      alert("Preencha o nome do jogo e da desenvolvedora.")
       return
     }
 
@@ -425,7 +450,7 @@ function App() {
       return
     }
 
-    const mediaUrls = getAllMediaUrls(newGameImageUrl, newGameMediaText)
+    const mediaUrls = getAllMediaUrls(newGameImageUrl, newMediaUrls)
 
     const { error } = await supabase.from('games').insert([
       {
@@ -433,6 +458,8 @@ function App() {
         imageurl: newGameImageUrl,
         description: newGameDescription,
         media_urls: mediaUrls,
+        company_name: newGameCompanyName, 
+        company_contact: newGameContact,
         developer_id: user.id
       }
     ])
@@ -445,7 +472,9 @@ function App() {
       setNewGameTitle('')
       setNewGameImageUrl('')
       setNewGameDescription('')
-      setNewGameMediaText('')
+      setNewGameCompanyName('') 
+      setNewGameContact('')
+      setNewMediaUrls([''])
 
       await fetchGames()
       await fetchDeveloperGames()
@@ -458,12 +487,14 @@ function App() {
     setEditGameTitle(game.title || '')
     setEditGameImageUrl(game.imageurl || '')
     setEditGameDescription(game.description || '')
+    setEditGameCompanyName(game.company_name || '') 
+    setEditGameContact(game.company_contact || '')
 
     const mediaWithoutMainImage = game.media_urls
       ? game.media_urls.filter(url => url !== game.imageurl)
       : []
 
-    setEditGameMediaText(mediaWithoutMainImage.join('\n'))
+    setEditMediaUrls(mediaWithoutMainImage.length > 0 ? mediaWithoutMainImage : [''])
 
     setTimeout(() => {
       const editArea = document.getElementById('edit-game-area')
@@ -478,7 +509,9 @@ function App() {
     setEditGameTitle('')
     setEditGameImageUrl('')
     setEditGameDescription('')
-    setEditGameMediaText('')
+    setEditGameCompanyName('')
+    setEditGameContact('')
+    setEditMediaUrls([''])
   }
 
   async function updateGame(e) {
@@ -486,8 +519,8 @@ function App() {
 
     if (!editingGame) return
 
-    if (!editGameTitle.trim()) {
-      alert("Digite o nome do jogo.")
+    if (!editGameTitle.trim() || !editGameCompanyName.trim()) {
+      alert("Preencha o nome do jogo e da desenvolvedora.")
       return
     }
 
@@ -501,7 +534,7 @@ function App() {
       return
     }
 
-    const mediaUrls = getAllMediaUrls(editGameImageUrl, editGameMediaText)
+    const mediaUrls = getAllMediaUrls(editGameImageUrl, editMediaUrls)
 
     const { error } = await supabase
       .from('games')
@@ -509,7 +542,9 @@ function App() {
         title: editGameTitle,
         imageurl: editGameImageUrl,
         description: editGameDescription,
-        media_urls: mediaUrls
+        media_urls: mediaUrls,
+        company_name: editGameCompanyName, 
+        company_contact: editGameContact
       })
       .eq('id', editingGame.id)
       .eq('developer_id', user.id)
@@ -525,27 +560,31 @@ function App() {
     }
   }
 
-  // NOVA FUNÇÃO: Apagar jogo
   async function deleteGame(gameId) {
     const confirmDelete = window.confirm(
-      "Tem certeza que deseja apagar este jogo? As avaliações vinculadas a ele também poderão ser perdidas."
+      "Tem certeza que deseja apagar este jogo? As avaliações vinculadas a ele também serão perdidas."
     )
     
     if (!confirmDelete) return
+
+    await supabase
+      .from('reviews')
+      .delete()
+      .eq('game_id', gameId)
 
     const { error } = await supabase
       .from('games')
       .delete()
       .eq('id', gameId)
-      .eq('developer_id', user.id) // Regra de segurança extra via código
+      .eq('developer_id', user.id)
 
     if (error) {
-      alert(error.message)
+      alert("Erro ao apagar o jogo:\n" + error.message)
     } else {
       alert("Jogo apagado com sucesso!")
       
       if (editingGame?.id === gameId) {
-        cancelEditGame() // Fecha a tela de edição se o jogo apagado estiver sendo editado
+        cancelEditGame() 
       }
       
       await fetchGames()
@@ -671,18 +710,36 @@ function App() {
             {page === 'catalog' && (
               <div className="catalog-wrapper">
                 <h1>Catálogo de Jogos</h1>
+
+                <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label style={{ fontWeight: 'bold', color: 'var(--text-secondary)' }}>Desenvolvedora:</label>
+                  <select
+                    className="form-select"
+                    value={catalogDeveloperFilter}
+                    onChange={(e) => setCatalogDeveloperFilter(e.target.value)}
+                    style={{ width: 'auto', margin: 0, padding: '8px 12px' }}
+                  >
+                    <option value="todas">Todas as desenvolvedoras</option>
+                    {[...new Set(games.map(g => g.company_name).filter(Boolean))].map(company => (
+                      <option key={company} value={company}>{company}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <hr className="title-divider" />
 
                 <div className="game-grid">
-                  {games.map(game => (
-                    <div
-                      key={game.id}
-                      className="game-card"
-                      onClick={() => openGameDetails(game)}
-                    >
-                      <img src={game.imageurl} alt={game.title} />
-                      <div className="game-title-bar">{game.title}</div>
-                    </div>
+                  {games
+                    .filter(game => catalogDeveloperFilter === "todas" || game.company_name === catalogDeveloperFilter)
+                    .map(game => (
+                      <div
+                        key={game.id}
+                        className="game-card"
+                        onClick={() => openGameDetails(game)}
+                      >
+                        <img src={game.imageurl} alt={game.title} />
+                        <div className="game-title-bar">{game.title}</div>
+                      </div>
                   ))}
                 </div>
               </div>
@@ -697,10 +754,25 @@ function App() {
                 <div className="details-main-card">
                   <div className="details-image-section">
                     <img src={selectedGame.imageurl} alt={selectedGame.title} />
+                    
+                    {selectedGame.company_contact && (
+                      <div className="game-contact-box">
+                        <strong>Informações de Contato</strong>
+                        <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>
+                          {selectedGame.company_contact}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="details-info-section">
                     <h1>{selectedGame.title}</h1>
+
+                    {selectedGame.company_name && (
+                      <h3 style={{ color: 'var(--accent-blue)', marginTop: '-10px', fontSize: '1.1rem', marginBottom: '20px' }}>
+                        Desenvolvido por: {selectedGame.company_name}
+                      </h3>
+                    )}
 
                     {selectedGame.description && (
                       <p className="game-description">
@@ -796,7 +868,6 @@ function App() {
                   Veja as avaliações feitas por todos os jogadores.
                 </p>
 
-                {/* PAINEL DE FILTROS */}
                 <div style={{
                   display: 'flex', 
                   flexWrap: 'wrap', 
@@ -808,7 +879,6 @@ function App() {
                   border: '1px solid var(--border-color)'
                 }}>
                   
-                  {/* Filtro por Jogo */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Jogo</label>
                     <select 
@@ -818,13 +888,29 @@ function App() {
                       style={{ margin: 0, padding: '8px 12px' }}
                     >
                       <option value="todos">Todos os jogos</option>
-                      {[...new Set(communityReviews.map(r => r.games?.title).filter(Boolean))].map(gameTitle => (
+                      {/* ATUALIZADO: Puxa o nome dos jogos da lista geral de jogos (games) */}
+                      {[...new Set(games.map(g => g.title).filter(Boolean))].map(gameTitle => (
                         <option key={gameTitle} value={gameTitle}>{gameTitle}</option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Filtro por Estrelas */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Desenvolvedora</label>
+                    <select 
+                      className="form-select" 
+                      value={reviewDeveloperFilter}
+                      onChange={(e) => setReviewDeveloperFilter(e.target.value)}
+                      style={{ margin: 0, padding: '8px 12px' }}
+                    >
+                      <option value="todas">Todas as desenvolvedoras</option>
+                      {/* ATUALIZADO: Puxa as desenvolvedoras da lista geral de jogos (games) */}
+                      {[...new Set(games.map(g => g.company_name).filter(Boolean))].map(companyTitle => (
+                        <option key={companyTitle} value={companyTitle}>{companyTitle}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nota</label>
                     <select 
@@ -842,7 +928,6 @@ function App() {
                     </select>
                   </div>
 
-                  {/* Ordenação por Data */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Ordem</label>
                     <select 
@@ -863,11 +948,9 @@ function App() {
                 <div className="reviews-feed">
                   {communityReviews.length > 0 ? (
                     communityReviews
-                      // 1. Filtra pelo nome do jogo
                       .filter(rev => selectedFilter === "todos" || rev.games?.title === selectedFilter)
-                      // 2. Filtra pela quantidade de estrelas (rating)
+                      .filter(rev => reviewDeveloperFilter === "todas" || rev.games?.company_name === reviewDeveloperFilter)
                       .filter(rev => ratingFilter === "todas" || rev.rating.toString() === ratingFilter)
-                      // 3. Ordena pelo ID (Mais recente = Maior ID)
                       .sort((a, b) => {
                         if (sortOrder === "recente") {
                           return b.id - a.id; 
@@ -933,53 +1016,142 @@ function App() {
                 <div className="developer-card">
                   <h2>Adicionar novo jogo</h2>
 
-                  <form onSubmit={addGame}>
-                    <label>Nome do jogo</label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Meu Jogo Indie"
-                      value={newGameTitle}
-                      onChange={(e) => setNewGameTitle(e.target.value)}
-                      required
-                    />
+                  <div className="developer-form-split">
+                    
+                    <form onSubmit={addGame}>
+                      <label>Nome do jogo</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Meu Jogo Indie"
+                        value={newGameTitle}
+                        onChange={(e) => setNewGameTitle(e.target.value)}
+                        required
+                      />
 
-                    <label>Imagem principal do jogo</label>
-                    <input
-                      type="url"
-                      placeholder="https://exemplo.com/capa.jpg"
-                      value={newGameImageUrl}
-                      onChange={(e) => setNewGameImageUrl(e.target.value)}
-                      required
-                    />
+                      <label>Imagem principal do jogo</label>
+                      <input
+                        type="url"
+                        placeholder="https://exemplo.com/capa.jpg"
+                        value={newGameImageUrl}
+                        onChange={(e) => setNewGameImageUrl(e.target.value)}
+                        required
+                      />
 
-                    <label>Descrição do jogo</label>
-                    <textarea
-                      className="developer-textarea"
-                      placeholder="Fale sobre a história, gameplay, gênero e principais características do jogo."
-                      value={newGameDescription}
-                      onChange={(e) => setNewGameDescription(e.target.value)}
-                      required
-                    ></textarea>
+                      <label>Nome da Empresa (Desenvolvedora)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Epic Games"
+                        value={newGameCompanyName}
+                        onChange={(e) => setNewGameCompanyName(e.target.value)}
+                        required
+                      />
 
-                    <label>Fotos ou vídeos adicionais</label>
-                    <textarea
-                      className="developer-textarea"
-                      placeholder="Cole uma URL por linha. Pode ser imagem, vídeo .mp4, .webm ou link do YouTube."
-                      value={newGameMediaText}
-                      onChange={(e) => setNewGameMediaText(e.target.value)}
-                    ></textarea>
+                      <label>Contato da Empresa</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: suporte@empresa.com / site.com"
+                        value={newGameContact}
+                        onChange={(e) => setNewGameContact(e.target.value)}
+                      />
 
-                    {newGameImageUrl && (
-                      <div className="game-preview">
-                        <p>Prévia da capa:</p>
-                        <img src={newGameImageUrl} alt="Prévia do jogo" />
+                      <label>Descrição do jogo</label>
+                      <textarea
+                        className="developer-textarea"
+                        placeholder="Fale sobre a história, gameplay, gênero e principais características do jogo."
+                        value={newGameDescription}
+                        onChange={(e) => setNewGameDescription(e.target.value)}
+                        required
+                      ></textarea>
+
+                      <label>Fotos ou vídeos adicionais (Máximo: 5)</label>
+                      <div>
+                        {newMediaUrls.map((url, index) => (
+                          <div key={index} className="dynamic-input-row">
+                            <input
+                              type="url"
+                              placeholder="Cole a URL da imagem ou vídeo..."
+                              value={url}
+                              onChange={(e) => handleNewMediaChange(index, e.target.value)}
+                            />
+                            {newMediaUrls.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn-remove-input"
+                                onClick={() => handleRemoveNewMediaInput(index)}
+                              >
+                                X
+                              </button>
+                            )}
+                          </div>
+                        ))}
+
+                        {newMediaUrls.length < 5 && (
+                          <button
+                            type="button"
+                            className="btn-add-input"
+                            onClick={handleAddNewMediaInput}
+                          >
+                            + Adicionar mais um link
+                          </button>
+                        )}
                       </div>
-                    )}
 
-                    <button type="submit" className="btn-add-game">
-                      Adicionar jogo
-                    </button>
-                  </form>
+                      <button type="submit" className="btn-add-game">
+                        Adicionar jogo
+                      </button>
+                    </form>
+
+                    <div className="live-preview-box">
+                      <h3 className="preview-title">Prévia da Página do Jogo</h3>
+                      
+                      <div className="details-main-card preview-mode">
+                        <div className="details-image-section">
+                          {newGameImageUrl ? (
+                            <img src={newGameImageUrl} alt="Prévia do jogo" />
+                          ) : (
+                            <div style={{ backgroundColor: 'var(--bg-input)', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-md)', color: 'var(--text-secondary)' }}>
+                              Capa do Jogo
+                            </div>
+                          )}
+                          
+                          {newGameContact && (
+                            <div className="game-contact-box">
+                              <strong>Informações de Contato</strong>
+                              <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>
+                                {newGameContact}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="details-info-section">
+                          <h1>{newGameTitle || "Nome do Jogo"}</h1>
+
+                          <h3 style={{ color: 'var(--accent-blue)', marginTop: '-10px', fontSize: '1.1rem', marginBottom: '20px' }}>
+                            Desenvolvido por: {newGameCompanyName || "Sua Empresa"}
+                          </h3>
+
+                          <p className="game-description" style={{ minHeight: '60px' }}>
+                            {newGameDescription || "A descrição do seu jogo aparecerá aqui..."}
+                          </p>
+
+                          {getAllMediaUrls(newGameImageUrl, newMediaUrls).length > 0 && (
+                            <div className="media-gallery">
+                              <h3 style={{ fontSize: '15px' }}>Fotos e vídeos do jogo</h3>
+                              <div className="media-grid">
+                                {getAllMediaUrls(newGameImageUrl, newMediaUrls).map((url, index) => (
+                                  <div key={index} className="media-box">
+                                    {renderMedia(url, index)}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
                 </div>
 
                 <div className="developer-card developer-list-card">
@@ -996,7 +1168,6 @@ function App() {
                             <p>{game.description || "Sem descrição."}</p>
                           </div>
 
-                          {/* NOVA ÁREA DE BOTÕES */}
                           <div className="developer-game-actions">
                             <button
                               className="btn-edit-game"
@@ -1025,60 +1196,149 @@ function App() {
                   <div id="edit-game-area" className="developer-card edit-game-card">
                     <h2>Editando: {editingGame.title}</h2>
 
-                    <form onSubmit={updateGame}>
-                      <label>Nome do jogo</label>
-                      <input
-                        type="text"
-                        value={editGameTitle}
-                        onChange={(e) => setEditGameTitle(e.target.value)}
-                        required
-                      />
+                    <div className="developer-form-split">
+                      <form onSubmit={updateGame}>
+                        <label>Nome do jogo</label>
+                        <input
+                          type="text"
+                          value={editGameTitle}
+                          onChange={(e) => setEditGameTitle(e.target.value)}
+                          required
+                        />
 
-                      <label>Imagem principal do jogo</label>
-                      <input
-                        type="url"
-                        value={editGameImageUrl}
-                        onChange={(e) => setEditGameImageUrl(e.target.value)}
-                        required
-                      />
+                        <label>Imagem principal do jogo</label>
+                        <input
+                          type="url"
+                          value={editGameImageUrl}
+                          onChange={(e) => setEditGameImageUrl(e.target.value)}
+                          required
+                        />
 
-                      <label>Descrição do jogo</label>
-                      <textarea
-                        className="developer-textarea"
-                        value={editGameDescription}
-                        onChange={(e) => setEditGameDescription(e.target.value)}
-                        required
-                      ></textarea>
+                        <label>Nome da Empresa (Desenvolvedora)</label>
+                        <input
+                          type="text"
+                          placeholder="Ex: Epic Games"
+                          value={editGameCompanyName}
+                          onChange={(e) => setEditGameCompanyName(e.target.value)}
+                          required
+                        />
 
-                      <label>Fotos ou vídeos adicionais</label>
-                      <textarea
-                        className="developer-textarea"
-                        placeholder="Cole uma URL por linha. Pode ser imagem, vídeo .mp4, .webm ou link do YouTube."
-                        value={editGameMediaText}
-                        onChange={(e) => setEditGameMediaText(e.target.value)}
-                      ></textarea>
+                        <label>Contato da Empresa</label>
+                        <input
+                          type="text"
+                          placeholder="Ex: suporte@empresa.com / site.com"
+                          value={editGameContact}
+                          onChange={(e) => setEditGameContact(e.target.value)}
+                        />
 
-                      {editGameImageUrl && (
-                        <div className="game-preview">
-                          <p>Prévia da capa:</p>
-                          <img src={editGameImageUrl} alt="Prévia do jogo" />
+                        <label>Descrição do jogo</label>
+                        <textarea
+                          className="developer-textarea"
+                          value={editGameDescription}
+                          onChange={(e) => setEditGameDescription(e.target.value)}
+                          required
+                        ></textarea>
+
+                        <label>Fotos ou vídeos adicionais (Máximo: 5)</label>
+                        <div>
+                          {editMediaUrls.map((url, index) => (
+                            <div key={index} className="dynamic-input-row">
+                              <input
+                                type="url"
+                                placeholder="Cole a URL da imagem ou vídeo..."
+                                value={url}
+                                onChange={(e) => handleEditMediaChange(index, e.target.value)}
+                              />
+                              {editMediaUrls.length > 1 && (
+                                <button
+                                  type="button"
+                                  className="btn-remove-input"
+                                  onClick={() => handleRemoveEditMediaInput(index)}
+                                >
+                                  X
+                                </button>
+                              )}
+                            </div>
+                          ))}
+
+                          {editMediaUrls.length < 5 && (
+                            <button
+                              type="button"
+                              className="btn-add-input"
+                              onClick={handleAddEditMediaInput}
+                            >
+                              + Adicionar mais um link
+                            </button>
+                          )}
                         </div>
-                      )}
 
-                      <div className="edit-actions">
-                        <button type="submit" className="btn-add-game">
-                          Salvar alterações
-                        </button>
+                        <div className="edit-actions">
+                          <button type="submit" className="btn-add-game">
+                            Salvar alterações
+                          </button>
 
-                        <button
-                          type="button"
-                          className="btn-cancel-edit"
-                          onClick={cancelEditGame}
-                        >
-                          Cancelar
-                        </button>
+                          <button
+                            type="button"
+                            className="btn-cancel-edit"
+                            onClick={cancelEditGame}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </form>
+
+                      {/* PRÉVIA AO VIVO DA EDIÇÃO */}
+                      <div className="live-preview-box">
+                        <h3 className="preview-title">Prévia da Edição</h3>
+                        
+                        <div className="details-main-card preview-mode">
+                          <div className="details-image-section">
+                            {editGameImageUrl ? (
+                              <img src={editGameImageUrl} alt="Prévia do jogo" />
+                            ) : (
+                              <div style={{ backgroundColor: 'var(--bg-input)', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-md)', color: 'var(--text-secondary)' }}>
+                                Capa do Jogo
+                              </div>
+                            )}
+
+                            {editGameContact && (
+                              <div className="game-contact-box">
+                                <strong>Informações de Contato</strong>
+                                <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>
+                                  {editGameContact}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="details-info-section">
+                            <h1>{editGameTitle || "Nome do Jogo"}</h1>
+
+                            <h3 style={{ color: 'var(--accent-blue)', marginTop: '-10px', fontSize: '1.1rem', marginBottom: '20px' }}>
+                              Desenvolvido por: {editGameCompanyName || "Sua Empresa"}
+                            </h3>
+
+                            <p className="game-description" style={{ minHeight: '60px' }}>
+                              {editGameDescription || "A descrição do seu jogo aparecerá aqui..."}
+                            </p>
+
+                            {getAllMediaUrls(editGameImageUrl, editMediaUrls).length > 0 && (
+                              <div className="media-gallery">
+                                <h3 style={{ fontSize: '15px' }}>Fotos e vídeos do jogo</h3>
+                                <div className="media-grid">
+                                  {getAllMediaUrls(editGameImageUrl, editMediaUrls).map((url, index) => (
+                                    <div key={index} className="media-box">
+                                      {renderMedia(url, index)}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </form>
+
+                    </div>
                   </div>
                 )}
               </div>

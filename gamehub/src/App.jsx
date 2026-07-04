@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient'
 import './App.css'
 
@@ -31,82 +31,134 @@ function App() {
   // States Cadastro
   const [newGameTitle, setNewGameTitle] = useState('')
   const [newGameImageUrl, setNewGameImageUrl] = useState('')
+  const [newGameImageFileName, setNewGameImageFileName] = useState('')
   const [newGameCompanyName, setNewGameCompanyName] = useState('')
   const [newGameContact, setNewGameContact] = useState('')
   const [newGameDescription, setNewGameDescription] = useState('')
   const [newMediaUrls, setNewMediaUrls] = useState([''])
+  const [newMediaFileNames, setNewMediaFileNames] = useState([''])
 
   // States Edição
   const [editingGame, setEditingGame] = useState(null)
   const [editGameTitle, setEditGameTitle] = useState('')
   const [editGameImageUrl, setEditGameImageUrl] = useState('')
+  const [editGameImageFileName, setEditGameImageFileName] = useState('')
   const [editGameCompanyName, setEditGameCompanyName] = useState('')
   const [editGameContact, setEditGameContact] = useState('')
   const [editGameDescription, setEditGameDescription] = useState('')
   const [editMediaUrls, setEditMediaUrls] = useState([''])
+  const [editMediaFileNames, setEditMediaFileNames] = useState([''])
+
+  const newGameImageInputRef = useRef(null)
+  const editGameImageInputRef = useRef(null)
+  const newMediaInputRefs = useRef([])
+  const editMediaInputRefs = useRef([])
 
   const isDeveloper = user?.user_metadata?.role === 'developer'
+
   async function handleImageUpload(e, isEdit = false) {
-  const file = e.target.files[0]
+    const file = e.target.files[0]
 
-  if (!file) return
+    if (!file) return
 
-  const fileExt = file.name.split(".").pop()
-  const fileName = `${Date.now()}_${Math.random()}.${fileExt}`
+    if (!file.type.startsWith("image/")) {
+      alert("Envie apenas arquivos de imagem.")
+      e.target.value = ""
+      return
+    }
 
-  const { error } = await supabase.storage
-    .from("game-images")
-    .upload(fileName, file)
+    const fileExt = file.name.split(".").pop()
+    const fileName = `games/covers/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`
 
-  if (error) {
-    alert("Erro ao enviar imagem: " + error.message)
-    return
+    const { error } = await supabase.storage
+      .from("game-images")
+      .upload(fileName, file)
+
+    if (error) {
+      alert("Erro ao enviar imagem: " + error.message)
+      return
+    }
+
+    const { data } = supabase.storage
+      .from("game-images")
+      .getPublicUrl(fileName)
+
+    if (isEdit) {
+      setEditGameImageUrl(data.publicUrl)
+      setEditGameImageFileName(file.name)
+    } else {
+      setNewGameImageUrl(data.publicUrl)
+      setNewGameImageFileName(file.name)
+    }
+
+    alert("Imagem enviada com sucesso!")
   }
 
-  const { data } = supabase.storage
-    .from("game-images")
-    .getPublicUrl(fileName)
+  function removeMainImageFile(isEdit = false) {
+    if (isEdit) {
+      setEditGameImageUrl('')
+      setEditGameImageFileName('')
 
-  if (isEdit) {
-    setEditGameImageUrl(data.publicUrl)
-  } else {
-    setNewGameImageUrl(data.publicUrl)
+      if (editGameImageInputRef.current) {
+        editGameImageInputRef.current.value = ''
+      }
+    } else {
+      setNewGameImageUrl('')
+      setNewGameImageFileName('')
+
+      if (newGameImageInputRef.current) {
+        newGameImageInputRef.current.value = ''
+      }
+    }
   }
 
-  alert("Imagem enviada com sucesso!")
-}
-async function handleDynamicMediaUpload(e, index, isEdit = false) {
-  const file = e.target.files[0];
-  if (!file) return;
+  async function handleDynamicMediaUpload(e, index, isEdit = false) {
+    const file = e.target.files[0]
 
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+    if (!file) return
 
-  const { error } = await supabase.storage
-    .from("game-images")
-    .upload(fileName, file);
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      alert("Envie apenas imagens ou vídeos.")
+      e.target.value = ""
+      return
+    }
 
-  if (error) {
-    alert("Erro ao subir arquivo: " + error.message);
-    return;
+    const fileExt = file.name.split(".").pop()
+    const fileName = `games/media/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`
+
+    const { error } = await supabase.storage
+      .from("game-images")
+      .upload(fileName, file)
+
+    if (error) {
+      alert("Erro ao subir arquivo: " + error.message)
+      return
+    }
+
+    const { data } = supabase.storage
+      .from("game-images")
+      .getPublicUrl(fileName)
+
+    if (isEdit) {
+      const updatedUrls = [...editMediaUrls]
+      updatedUrls[index] = data.publicUrl
+      setEditMediaUrls(updatedUrls)
+
+      const updatedFileNames = [...editMediaFileNames]
+      updatedFileNames[index] = file.name
+      setEditMediaFileNames(updatedFileNames)
+    } else {
+      const updatedUrls = [...newMediaUrls]
+      updatedUrls[index] = data.publicUrl
+      setNewMediaUrls(updatedUrls)
+
+      const updatedFileNames = [...newMediaFileNames]
+      updatedFileNames[index] = file.name
+      setNewMediaFileNames(updatedFileNames)
+    }
+
+    alert("Arquivo enviado com sucesso!")
   }
-
-  const { data } = supabase.storage
-    .from("game-images")
-    .getPublicUrl(fileName);
-
-  if (isEdit) {
-    const updated = [...editMediaUrls];
-    updated[index] = data.publicUrl;
-    setEditMediaUrls(updated);
-  } else {
-    const updated = [...newMediaUrls];
-    updated[index] = data.publicUrl;
-    setNewMediaUrls(updated);
-  }
-
-  alert("Arquivo enviado com sucesso!");
-}
 
   useEffect(() => {
     const checkUser = async () => {
@@ -395,34 +447,58 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
     const updatedUrls = [...newMediaUrls]
     updatedUrls[index] = value
     setNewMediaUrls(updatedUrls)
+
+    const updatedFileNames = [...newMediaFileNames]
+    updatedFileNames[index] = ''
+    setNewMediaFileNames(updatedFileNames)
+
+    if (newMediaInputRefs.current[index]) {
+      newMediaInputRefs.current[index].value = ''
+    }
   }
 
   function handleAddNewMediaInput() {
     if (newMediaUrls.length < 5) {
       setNewMediaUrls([...newMediaUrls, ''])
+      setNewMediaFileNames([...newMediaFileNames, ''])
     }
   }
 
   function handleRemoveNewMediaInput(index) {
     const updatedUrls = newMediaUrls.filter((_, i) => i !== index)
+    const updatedFileNames = newMediaFileNames.filter((_, i) => i !== index)
+
     setNewMediaUrls(updatedUrls.length > 0 ? updatedUrls : [''])
+    setNewMediaFileNames(updatedFileNames.length > 0 ? updatedFileNames : [''])
   }
 
   function handleEditMediaChange(index, value) {
     const updatedUrls = [...editMediaUrls]
     updatedUrls[index] = value
     setEditMediaUrls(updatedUrls)
+
+    const updatedFileNames = [...editMediaFileNames]
+    updatedFileNames[index] = ''
+    setEditMediaFileNames(updatedFileNames)
+
+    if (editMediaInputRefs.current[index]) {
+      editMediaInputRefs.current[index].value = ''
+    }
   }
 
   function handleAddEditMediaInput() {
     if (editMediaUrls.length < 5) {
       setEditMediaUrls([...editMediaUrls, ''])
+      setEditMediaFileNames([...editMediaFileNames, ''])
     }
   }
 
   function handleRemoveEditMediaInput(index) {
     const updatedUrls = editMediaUrls.filter((_, i) => i !== index)
+    const updatedFileNames = editMediaFileNames.filter((_, i) => i !== index)
+
     setEditMediaUrls(updatedUrls.length > 0 ? updatedUrls : [''])
+    setEditMediaFileNames(updatedFileNames.length > 0 ? updatedFileNames : [''])
   }
 
   function getAllMediaUrls(mainImage, mediaArray) {
@@ -532,10 +608,20 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
 
       setNewGameTitle('')
       setNewGameImageUrl('')
+      setNewGameImageFileName('')
       setNewGameDescription('')
       setNewGameCompanyName('')
       setNewGameContact('')
       setNewMediaUrls([''])
+      setNewMediaFileNames([''])
+
+      if (newGameImageInputRef.current) {
+        newGameImageInputRef.current.value = ''
+      }
+
+      newMediaInputRefs.current.forEach(input => {
+        if (input) input.value = ''
+      })
 
       await fetchGames()
       await fetchDeveloperGames()
@@ -547,6 +633,7 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
 
     setEditGameTitle(game.title || '')
     setEditGameImageUrl(game.imageurl || '')
+    setEditGameImageFileName('')
     setEditGameDescription(game.description || '')
     setEditGameCompanyName(game.company_name || '')
     setEditGameContact(game.company_contact || '')
@@ -556,6 +643,7 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
       : []
 
     setEditMediaUrls(mediaWithoutMainImage.length > 0 ? mediaWithoutMainImage : [''])
+    setEditMediaFileNames(mediaWithoutMainImage.length > 0 ? mediaWithoutMainImage.map(() => '') : [''])
 
     setTimeout(() => {
       const editArea = document.getElementById('edit-game-area')
@@ -569,10 +657,20 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
     setEditingGame(null)
     setEditGameTitle('')
     setEditGameImageUrl('')
+    setEditGameImageFileName('')
     setEditGameDescription('')
     setEditGameCompanyName('')
     setEditGameContact('')
     setEditMediaUrls([''])
+    setEditMediaFileNames([''])
+
+    if (editGameImageInputRef.current) {
+      editGameImageInputRef.current.value = ''
+    }
+
+    editMediaInputRefs.current.forEach(input => {
+      if (input) input.value = ''
+    })
   }
 
   async function updateGame(e) {
@@ -1086,22 +1184,54 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                         onChange={(e) => setNewGameTitle(e.target.value)}
                         required
                       />
-<label>Imagem principal (Enviar arquivo ou usar URL)</label>
+                      <label>Imagem principal (Enviar arquivo ou usar URL)</label>
 
-<input
-  type="file"
-  accept="image/*"
-  onChange={(e) => handleImageUpload(e, false)}
-  style={{ marginBottom: "10px" }}
-/>
+                      <div className="custom-file-area">
+                        <input
+                          ref={newGameImageInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, false)}
+                          className="hidden-file-input"
+                        />
 
-<input
-  type="url"
-  placeholder="https://exemplo.com/capa.jpg"
-  value={newGameImageUrl}
-  onChange={(e) => setNewGameImageUrl(e.target.value)}
-  required
-/>
+                        <button
+                          type="button"
+                          className="btn-file-select"
+                          onClick={() => newGameImageInputRef.current?.click()}
+                        >
+                          Escolher imagem
+                        </button>
+
+                        <span className="file-name-text">
+                          {newGameImageFileName || "Nenhuma imagem escolhida"}
+                        </span>
+
+                        {(newGameImageUrl || newGameImageFileName) && (
+                          <button
+                            type="button"
+                            className="btn-remove-file"
+                            onClick={() => removeMainImageFile(false)}
+                          >
+                            Remover imagem
+                          </button>
+                        )}
+                      </div>
+
+                      <input
+                        type="url"
+                        placeholder="https://exemplo.com/capa.jpg"
+                        value={newGameImageUrl}
+                        onChange={(e) => {
+                          setNewGameImageUrl(e.target.value)
+                          setNewGameImageFileName('')
+
+                          if (newGameImageInputRef.current) {
+                            newGameImageInputRef.current.value = ''
+                          }
+                        }}
+                        required
+                      />
                       <label>Nome da Empresa (Desenvolvedora)</label>
                       <input
                         type="text"
@@ -1130,52 +1260,59 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
 
                       <label>Fotos ou vídeos adicionais (Máximo: 5)</label>
                       <div>
-                      {newMediaUrls.map((url, index) => (
-  <div
-    key={index}
-    className="dynamic-input-row"
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "5px",
-      marginBottom: "15px",
-    }}
-  >
-    <label>Enviar imagem ou vídeo</label>
+                        {newMediaUrls.map((url, index) => (
+                          <div key={index} className="dynamic-input-row">
+                            <label>Enviar imagem ou vídeo</label>
 
-    <input
-      type="file"
-      accept="image/*,video/*"
-      onChange={(e) => handleDynamicMediaUpload(e, index, false)}
-    />
+                            <div className="custom-file-area">
+                              <input
+                                ref={(el) => { newMediaInputRefs.current[index] = el }}
+                                type="file"
+                                accept="image/*,video/*"
+                                onChange={(e) => handleDynamicMediaUpload(e, index, false)}
+                                className="hidden-file-input"
+                              />
 
-    <label>Ou cole um link</label>
+                              <button
+                                type="button"
+                                className="btn-file-select"
+                                onClick={() => newMediaInputRefs.current[index]?.click()}
+                              >
+                                Escolher arquivo
+                              </button>
 
-    <input
-      type="url"
-      placeholder="https://..."
-      value={url}
-      onChange={(e) => handleNewMediaChange(index, e.target.value)}
-    />
+                              <span className="file-name-text">
+                                {newMediaFileNames[index] || "Nenhum arquivo escolhido"}
+                              </span>
+                            </div>
 
-    {newMediaUrls.length > 1 && (
-      <button
-        type="button"
-        className="btn-remove-input"
-        onClick={() => handleRemoveNewMediaInput(index)}
-      >
-        Remover
-      </button>
-    )}
-  </div>
-))}
+                            <label>Ou cole um link</label>
+
+                            <input
+                              type="url"
+                              placeholder="https://..."
+                              value={url}
+                              onChange={(e) => handleNewMediaChange(index, e.target.value)}
+                            />
+
+                            {newMediaUrls.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn-remove-input"
+                                onClick={() => handleRemoveNewMediaInput(index)}
+                              >
+                                Remover
+                              </button>
+                            )}
+                          </div>
+                        ))}
                         {newMediaUrls.length < 5 && (
                           <button
                             type="button"
                             className="btn-add-input"
                             onClick={handleAddNewMediaInput}
                           >
-                            + Adicionar mais um link
+                            + Adicionar mais uma mídia
                           </button>
                         )}
                       </div>
@@ -1265,7 +1402,7 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                             >
                               Apagar
                             </button>
-                          </div>
+</div>
                         </div>
                       ))}
                     </div>
@@ -1290,21 +1427,54 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                           required
                         />
 
-                       <label>Imagem principal (Enviar arquivo ou usar URL)</label>
+                        <label>Imagem principal (Enviar arquivo ou usar URL)</label>
 
-<input
-  type="file"
-  accept="image/*"
-  onChange={(e) => handleImageUpload(e, true)}
-  style={{ marginBottom: "10px" }}
-/>
+                        <div className="custom-file-area">
+                          <input
+                            ref={editGameImageInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, true)}
+                            className="hidden-file-input"
+                          />
 
-<input
-  type="url"
-  value={editGameImageUrl}
-  onChange={(e) => setEditGameImageUrl(e.target.value)}
-  required
-/>
+                          <button
+                            type="button"
+                            className="btn-file-select"
+                            onClick={() => editGameImageInputRef.current?.click()}
+                          >
+                            Escolher imagem
+                          </button>
+
+                          <span className="file-name-text">
+                            {editGameImageFileName || "Nenhuma imagem escolhida"}
+                          </span>
+
+                          {(editGameImageUrl || editGameImageFileName) && (
+                            <button
+                              type="button"
+                              className="btn-remove-file"
+                              onClick={() => removeMainImageFile(true)}
+                            >
+                              Remover imagem
+                            </button>
+                          )}
+                        </div>
+
+                        <input
+                          type="url"
+                          placeholder="https://exemplo.com/capa.jpg"
+                          value={editGameImageUrl}
+                          onChange={(e) => {
+                            setEditGameImageUrl(e.target.value)
+                            setEditGameImageFileName('')
+
+                            if (editGameImageInputRef.current) {
+                              editGameImageInputRef.current.value = ''
+                            }
+                          }}
+                          required
+                        />
 
                         <label>Nome da Empresa (Desenvolvedora)</label>
                         <input
@@ -1335,19 +1505,46 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                         <div>
                           {editMediaUrls.map((url, index) => (
                             <div key={index} className="dynamic-input-row">
+                              <label>Enviar imagem ou vídeo</label>
+
+                              <div className="custom-file-area">
+                                <input
+                                  ref={(el) => { editMediaInputRefs.current[index] = el }}
+                                  type="file"
+                                  accept="image/*,video/*"
+                                  onChange={(e) => handleDynamicMediaUpload(e, index, true)}
+                                  className="hidden-file-input"
+                                />
+
+                                <button
+                                  type="button"
+                                  className="btn-file-select"
+                                  onClick={() => editMediaInputRefs.current[index]?.click()}
+                                >
+                                  Escolher arquivo
+                                </button>
+
+                                <span className="file-name-text">
+                                  {editMediaFileNames[index] || "Nenhum arquivo escolhido"}
+                                </span>
+                              </div>
+
+                              <label>Ou cole um link</label>
+
                               <input
                                 type="url"
                                 placeholder="Cole a URL da imagem ou vídeo..."
                                 value={url}
                                 onChange={(e) => handleEditMediaChange(index, e.target.value)}
                               />
+
                               {editMediaUrls.length > 1 && (
                                 <button
                                   type="button"
                                   className="btn-remove-input"
                                   onClick={() => handleRemoveEditMediaInput(index)}
                                 >
-                                  X
+                                  Remover
                                 </button>
                               )}
                             </div>
@@ -1359,7 +1556,7 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                               className="btn-add-input"
                               onClick={handleAddEditMediaInput}
                             >
-                              + Adicionar mais um link
+                              + Adicionar mais uma mídia
                             </button>
                           )}
                         </div>
@@ -1429,7 +1626,6 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
                           </div>
                         </div>
                       </div>
-
                     </div>
                   </div>
                 )}
@@ -1440,15 +1636,24 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
               <div className="profile-container">
                 <div className="profile-header-card">
                   <div className="avatar-circle">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M20 21C20 17.134 16.4183 14 12 14C7.58172 14 4 17.134 4 21"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </div>
 
                   <div className="user-info">
-                    <h1>{user.user_metadata?.display_name || "Usuário"}</h1>
-                    <p>{user.email}</p>
+                    <h1>{user?.user_metadata?.display_name || "Usuário"}</h1>
+                    <p>{user?.email}</p>
 
                     <span className={isDeveloper ? "role-badge developer" : "role-badge player"}>
                       {isDeveloper ? "Desenvolvedor" : "Jogador"}
@@ -1458,26 +1663,30 @@ async function handleDynamicMediaUpload(e, index, isEdit = false) {
 
                 <div className="stats-grid">
                   <div className="stat-card">
-                    <p>Total de Avaliações</p>
+                    <p>Total de avaliações feitas</p>
                     <h2>{totalReviews}</h2>
                   </div>
 
                   <div className="stat-card">
-                    <p>Média de Notas</p>
+                    <p>Média das suas notas</p>
                     <h2>{averageRating}</h2>
                   </div>
                 </div>
 
                 <div className="user-reviews-section">
-                  <h2>Minhas Avaliações</h2>
-                  <hr className="title-divider" />
+                  <h2>Minhas avaliações</h2>
 
                   <div className="reviews-feed">
                     {userReviews.length > 0 ? (
                       userReviews.map(rev => (
                         <div key={rev.id} className="review-card">
                           <div className="review-header">
-                            <strong>{rev.games?.title}</strong>
+                            <div>
+                              <strong>{rev.games?.title || "Jogo desconhecido"}</strong>
+                              <p className="review-card-meta">
+                                Avaliado por você
+                              </p>
+                            </div>
 
                             <div className="review-card-stars">
                               {[...Array(5)].map((_, i) => (

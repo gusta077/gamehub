@@ -1155,3 +1155,55 @@ a:hover {
 .btn-remove-input:hover {
   background: #dc2626;
 }
+
+
+
+
+.custom-file-area {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-input);
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.btn-file-select {
+  background-color: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-file-select:hover {
+  background-color: var(--accent-blue-hover);
+}
+
+.file-name-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.btn-remove-file {
+  background-color: var(--accent-red);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-remove-file:hover {
+  background-color: var(--accent-red-hover);
+}

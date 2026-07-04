@@ -46,35 +46,67 @@ function App() {
   const [editMediaUrls, setEditMediaUrls] = useState([''])
 
   const isDeveloper = user?.user_metadata?.role === 'developer'
-
-  // --- FUNÇÃO ADICIONADA PARA UPLOAD ---
   async function handleImageUpload(e, isEdit = false) {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0]
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    
-    const { error } = await supabase.storage
-      .from('game-images')
-      .upload(fileName, file);
+  if (!file) return
 
-    if (error) {
-      alert("Erro ao subir imagem: " + error.message);
-      return;
-    }
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${Date.now()}_${Math.random()}.${fileExt}`
 
-    const { data } = supabase.storage
-      .from('game-images')
-      .getPublicUrl(fileName);
+  const { error } = await supabase.storage
+    .from("game-images")
+    .upload(fileName, file)
 
-    if (isEdit) {
-      setEditGameImageUrl(data.publicUrl);
-    } else {
-      setNewGameImageUrl(data.publicUrl);
-    }
-    alert("Imagem enviada com sucesso!");
+  if (error) {
+    alert("Erro ao enviar imagem: " + error.message)
+    return
   }
+
+  const { data } = supabase.storage
+    .from("game-images")
+    .getPublicUrl(fileName)
+
+  if (isEdit) {
+    setEditGameImageUrl(data.publicUrl)
+  } else {
+    setNewGameImageUrl(data.publicUrl)
+  }
+
+  alert("Imagem enviada com sucesso!")
+}
+async function handleDynamicMediaUpload(e, index, isEdit = false) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("game-images")
+    .upload(fileName, file);
+
+  if (error) {
+    alert("Erro ao subir arquivo: " + error.message);
+    return;
+  }
+
+  const { data } = supabase.storage
+    .from("game-images")
+    .getPublicUrl(fileName);
+
+  if (isEdit) {
+    const updated = [...editMediaUrls];
+    updated[index] = data.publicUrl;
+    setEditMediaUrls(updated);
+  } else {
+    const updated = [...newMediaUrls];
+    updated[index] = data.publicUrl;
+    setNewMediaUrls(updated);
+  }
+
+  alert("Arquivo enviado com sucesso!");
+}
 
   useEffect(() => {
     const checkUser = async () => {
@@ -1054,16 +1086,22 @@ function App() {
                         onChange={(e) => setNewGameTitle(e.target.value)}
                         required
                       />
+<label>Imagem principal (Enviar arquivo ou usar URL)</label>
 
-                      <label>Imagem principal do jogo</label>
-                      <input
-                        type="url"
-                        placeholder="https://exemplo.com/capa.jpg"
-                        value={newGameImageUrl}
-                        onChange={(e) => setNewGameImageUrl(e.target.value)}
-                        required
-                      />
+<input
+  type="file"
+  accept="image/*"
+  onChange={(e) => handleImageUpload(e, false)}
+  style={{ marginBottom: "10px" }}
+/>
 
+<input
+  type="url"
+  placeholder="https://exemplo.com/capa.jpg"
+  value={newGameImageUrl}
+  onChange={(e) => setNewGameImageUrl(e.target.value)}
+  required
+/>
                       <label>Nome da Empresa (Desenvolvedora)</label>
                       <input
                         type="text"
@@ -1092,26 +1130,45 @@ function App() {
 
                       <label>Fotos ou vídeos adicionais (Máximo: 5)</label>
                       <div>
-                        {newMediaUrls.map((url, index) => (
-                          <div key={index} className="dynamic-input-row">
-                            <input
-                              type="url"
-                              placeholder="Cole a URL da imagem ou vídeo..."
-                              value={url}
-                              onChange={(e) => handleNewMediaChange(index, e.target.value)}
-                            />
-                            {newMediaUrls.length > 1 && (
-                              <button
-                                type="button"
-                                className="btn-remove-input"
-                                onClick={() => handleRemoveNewMediaInput(index)}
-                              >
-                                X
-                              </button>
-                            )}
-                          </div>
-                        ))}
+                      {newMediaUrls.map((url, index) => (
+  <div
+    key={index}
+    className="dynamic-input-row"
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "5px",
+      marginBottom: "15px",
+    }}
+  >
+    <label>Enviar imagem ou vídeo</label>
 
+    <input
+      type="file"
+      accept="image/*,video/*"
+      onChange={(e) => handleDynamicMediaUpload(e, index, false)}
+    />
+
+    <label>Ou cole um link</label>
+
+    <input
+      type="url"
+      placeholder="https://..."
+      value={url}
+      onChange={(e) => handleNewMediaChange(index, e.target.value)}
+    />
+
+    {newMediaUrls.length > 1 && (
+      <button
+        type="button"
+        className="btn-remove-input"
+        onClick={() => handleRemoveNewMediaInput(index)}
+      >
+        Remover
+      </button>
+    )}
+  </div>
+))}
                         {newMediaUrls.length < 5 && (
                           <button
                             type="button"
@@ -1233,13 +1290,21 @@ function App() {
                           required
                         />
 
-                        <label>Imagem principal do jogo</label>
-                        <input
-                          type="url"
-                          value={editGameImageUrl}
-                          onChange={(e) => setEditGameImageUrl(e.target.value)}
-                          required
-                        />
+                       <label>Imagem principal (Enviar arquivo ou usar URL)</label>
+
+<input
+  type="file"
+  accept="image/*"
+  onChange={(e) => handleImageUpload(e, true)}
+  style={{ marginBottom: "10px" }}
+/>
+
+<input
+  type="url"
+  value={editGameImageUrl}
+  onChange={(e) => setEditGameImageUrl(e.target.value)}
+  required
+/>
 
                         <label>Nome da Empresa (Desenvolvedora)</label>
                         <input

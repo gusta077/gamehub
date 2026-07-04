@@ -1123,4 +1123,35 @@ a:hover {
   .media-grid {
     grid-template-columns: 1fr;
   }
+}.dynamic-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #1e293b;
+}
+
+.dynamic-input-row input[type="file"] {
+  padding: 10px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: white;
+}
+
+.btn-remove-input {
+  width: fit-content;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-remove-input:hover {
+  background: #dc2626;
 }

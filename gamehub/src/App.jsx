@@ -31,7 +31,7 @@ function App() {
   // States Cadastro
   const [newGameTitle, setNewGameTitle] = useState('')
   const [newGameImageUrl, setNewGameImageUrl] = useState('')
-  const [newGameCompanyName, setNewGameCompanyName] = useState('') 
+  const [newGameCompanyName, setNewGameCompanyName] = useState('')
   const [newGameContact, setNewGameContact] = useState('')
   const [newGameDescription, setNewGameDescription] = useState('')
   const [newMediaUrls, setNewMediaUrls] = useState([''])
@@ -40,12 +40,41 @@ function App() {
   const [editingGame, setEditingGame] = useState(null)
   const [editGameTitle, setEditGameTitle] = useState('')
   const [editGameImageUrl, setEditGameImageUrl] = useState('')
-  const [editGameCompanyName, setEditGameCompanyName] = useState('') 
+  const [editGameCompanyName, setEditGameCompanyName] = useState('')
   const [editGameContact, setEditGameContact] = useState('')
   const [editGameDescription, setEditGameDescription] = useState('')
   const [editMediaUrls, setEditMediaUrls] = useState([''])
 
   const isDeveloper = user?.user_metadata?.role === 'developer'
+
+  // --- FUNÇÃO ADICIONADA PARA UPLOAD ---
+  async function handleImageUpload(e, isEdit = false) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('game-images')
+      .upload(fileName, file);
+
+    if (error) {
+      alert("Erro ao subir imagem: " + error.message);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from('game-images')
+      .getPublicUrl(fileName);
+
+    if (isEdit) {
+      setEditGameImageUrl(data.publicUrl);
+    } else {
+      setNewGameImageUrl(data.publicUrl);
+    }
+    alert("Imagem enviada com sucesso!");
+  }
 
   useEffect(() => {
     const checkUser = async () => {
@@ -285,7 +314,7 @@ function App() {
     if (error) {
       alert(error.message)
     } else {
-      alert("Cadastro realizado! Agora faça login.")
+      alert("Cadastro realizado com sucesso! Verifique seu email e após isso prossiga ao Login.")
       setPage('login')
     }
   }
@@ -458,7 +487,7 @@ function App() {
         imageurl: newGameImageUrl,
         description: newGameDescription,
         media_urls: mediaUrls,
-        company_name: newGameCompanyName, 
+        company_name: newGameCompanyName,
         company_contact: newGameContact,
         developer_id: user.id
       }
@@ -472,7 +501,7 @@ function App() {
       setNewGameTitle('')
       setNewGameImageUrl('')
       setNewGameDescription('')
-      setNewGameCompanyName('') 
+      setNewGameCompanyName('')
       setNewGameContact('')
       setNewMediaUrls([''])
 
@@ -487,7 +516,7 @@ function App() {
     setEditGameTitle(game.title || '')
     setEditGameImageUrl(game.imageurl || '')
     setEditGameDescription(game.description || '')
-    setEditGameCompanyName(game.company_name || '') 
+    setEditGameCompanyName(game.company_name || '')
     setEditGameContact(game.company_contact || '')
 
     const mediaWithoutMainImage = game.media_urls
@@ -543,7 +572,7 @@ function App() {
         imageurl: editGameImageUrl,
         description: editGameDescription,
         media_urls: mediaUrls,
-        company_name: editGameCompanyName, 
+        company_name: editGameCompanyName,
         company_contact: editGameContact
       })
       .eq('id', editingGame.id)
@@ -584,7 +613,7 @@ function App() {
       alert("Jogo apagado com sucesso!")
       
       if (editingGame?.id === gameId) {
-        cancelEditGame() 
+        cancelEditGame()
       }
       
       await fetchGames()
@@ -888,7 +917,6 @@ function App() {
                       style={{ margin: 0, padding: '8px 12px' }}
                     >
                       <option value="todos">Todos os jogos</option>
-                      {/* ATUALIZADO: Puxa o nome dos jogos da lista geral de jogos (games) */}
                       {[...new Set(games.map(g => g.title).filter(Boolean))].map(gameTitle => (
                         <option key={gameTitle} value={gameTitle}>{gameTitle}</option>
                       ))}
@@ -904,7 +932,6 @@ function App() {
                       style={{ margin: 0, padding: '8px 12px' }}
                     >
                       <option value="todas">Todas as desenvolvedoras</option>
-                      {/* ATUALIZADO: Puxa as desenvolvedoras da lista geral de jogos (games) */}
                       {[...new Set(games.map(g => g.company_name).filter(Boolean))].map(companyTitle => (
                         <option key={companyTitle} value={companyTitle}>{companyTitle}</option>
                       ))}

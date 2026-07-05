@@ -24,6 +24,7 @@ function App() {
   const [newNewsImage, setNewNewsImage] = useState('')
   const [questionTexts, setQuestionTexts] = useState({})
   const [modEmail, setModEmail] = useState('')
+  const [newsSortOrder, setNewsSortOrder] = useState('recente')
 
   // States do Filtro do Catálogo
   const [catalogDeveloperFilter, setCatalogDeveloperFilter] = useState("todas")
@@ -265,7 +266,6 @@ function App() {
       if (session) {
         setUser(session.user)
         setIsLogged(true)
-        // Redireciona pro site direto se ele estava na tela de login/cadastro esperando confirmar email
         setPage((prev) => (prev === 'login' || prev === 'signup') ? 'catalog' : prev)
       } else {
         setUser(null)
@@ -946,7 +946,7 @@ function App() {
           position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
           background: toast.type === 'error' ? '#ef4444' : toast.type === 'info' ? '#3b82f6' : '#10b981',
           color: 'white', padding: '12px 24px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px'
+          fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', animation: 'fadeInDown 0.3s ease-out'
         }}>
           {toast.message}
         </div>
@@ -959,7 +959,7 @@ function App() {
         }}>
           <div style={{
             background: '#1e293b', padding: '30px', borderRadius: '12px', maxWidth: '400px', width: '90%',
-            textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+            textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', animation: 'scaleUp 0.2s ease-out'
           }}>
             <h3 style={{ color: 'white', marginBottom: '15px', fontSize: '1.25rem' }}>Atenção</h3>
             <p style={{ color: '#cbd5e1', marginBottom: '25px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
@@ -1083,7 +1083,7 @@ function App() {
 
           <main className="content">
             
-            {/* ABA DE NOTÍCIAS COM PREVIEW E ESTILIZAÇÃO STEAM */}
+            {/* ABA DE NOTÍCIAS COM VISUAL INSPIRADO NA STEAM */}
             {page === 'news' && (
               <div className="catalog-wrapper">
                 <h1>Notícias e Atualizações</h1>
@@ -1109,34 +1109,36 @@ function App() {
                         <h3 style={{ margin: '0 0 5px 0', color: 'white', fontSize: '1.2rem' }}>{newNewsTitle || "Título de Exemplo"}</h3>
                         <div style={{ fontSize: '12px', color: '#acb2b8', marginBottom: '10px' }}>Hoje</div>
                         
+                        <div style={{ color: '#c6d4df', fontSize: '14px', whiteSpace: 'pre-wrap', lineHeight: '1.5', marginBottom: newNewsImage ? '15px' : '0' }}>
+                          {newNewsContent || "O conteúdo da sua notícia aparecerá aqui."}
+                        </div>
+
                         {newNewsImage ? (
-                          <img src={newNewsImage} alt="Capa da Prévia" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }} />
+                          <img src={newNewsImage} alt="Capa da Prévia" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '4px', marginBottom: '10px' }} />
                         ) : (
                           <div style={{ width: '100%', height: '150px', background: '#1b2838', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3d4450', marginBottom: '10px' }}>Imagem da Notícia</div>
                         )}
-                        
-                        <div style={{ color: '#c6d4df', fontSize: '14px', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
-                          {newNewsContent || "O conteúdo da sua notícia aparecerá aqui."}
-                        </div>
                       </div>
                     </div>
 
                   </div>
                 )}
 
-                {/* CABEÇALHO DE FILTRO INSPIRADO NA STEAM */}
+                {/* CABEÇALHO DE FILTRO INSPIRADO NA STEAM (Modificado) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#1b2838', padding: '10px 20px', borderRadius: '4px', marginBottom: '20px', border: '1px solid #2a3f5a' }}>
                   <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#67c1f5' }}>EXIBIR</span>
-                  <select style={{ background: '#3d4450', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}>
-                    <option>TODAS AS NOTÍCIAS</option>
+                  <select className="form-select" value={newsSortOrder} onChange={(e) => setNewsSortOrder(e.target.value)} style={{ background: '#3d4450', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer', margin: 0, width: 'auto' }}>
+                    <option value="recente">Mais Recentes</option>
+                    <option value="antigo">Mais Antigas</option>
                   </select>
-                  <button style={{ background: '#3d4450', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '3px', cursor: 'pointer', fontSize: '13px' }}>Seguir (?)</button>
                 </div>
 
                 {/* GRID DE NOTÍCIAS COM OS CARDS */}
                 <div className="news-feed" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {newsList.length > 0 ? (
-                    newsList.map(news => (
+                    [...newsList]
+                      .sort((a, b) => newsSortOrder === "recente" ? b.id - a.id : a.id - b.id)
+                      .map(news => (
                       <div key={news.id} style={{ background: '#171a21', padding: '20px', borderRadius: '4px', position: 'relative' }}>
                         
                         {/* BOTÃO DE EXCLUIR (Apenas para o autor ou moderador) */}
@@ -1155,12 +1157,16 @@ function App() {
                           {new Date(news.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '')}
                         </div>
                         
-                        {/* CONTEÚDO E IMAGEM */}
-                        <div style={{ color: '#c6d4df', fontSize: '14px', lineHeight: '1.6', marginBottom: '15px', whiteSpace: 'pre-wrap' }}>
+                        {/* CONTEÚDO */}
+                        <div style={{ color: '#c6d4df', fontSize: '14px', lineHeight: '1.6', marginBottom: news.imageurl ? '15px' : '0', whiteSpace: 'pre-wrap' }}>
                           {news.content}
                         </div>
+
+                        {/* IMAGEM ESTILO BANNER */}
                         {news.imageurl && (
-                          <img src={news.imageurl} alt="Capa da Notícia" style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '4px', marginBottom: '15px' }} />
+                          <div style={{ width: 'calc(100% + 40px)', margin: '0 -20px 15px -20px' }}>
+                            <img src={news.imageurl} alt="Capa da Notícia" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                          </div>
                         )}
 
                         {/* RODAPÉ DO CARD DA STEAM */}

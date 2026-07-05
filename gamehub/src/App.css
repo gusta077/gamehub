@@ -1207,3 +1207,57 @@ a:hover {
 .btn-remove-file:hover {
   background-color: var(--accent-red-hover);
 }
+.news-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: rgba(27, 40, 56, 0.8); /* Fundo escuro azulado */
+  padding: 10px 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  color: #67c1f5; /* Azul claro para o texto */
+  font-size: 13px;
+  font-weight: bold;
+  border: 1px solid #2a3f5a;
+}
+
+/* Caixa de Seleção (Dropdown) */
+.news-select {
+  background-color: #3d4450;
+  color: #ffffff;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.news-select:hover, 
+.news-select:focus {
+  background-color: #4a525f;
+  border-color: #67c1f5;
+}
+
+/* Botão "Seguir" */
+.btn-follow {
+  background-color: #3d4450;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+.btn-follow:hover {
+  background-color: #4a525f;
+  color: #67c1f5; /* Texto fica azul ao passar o mouse */
+}
+
+.btn-follow:active {
+  transform: scale(0.95); /* Efeito de clique */
+}
